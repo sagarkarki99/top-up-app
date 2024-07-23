@@ -7,4 +7,8 @@ part 'user_cubit.freezed.dart';
 
 class UserCubit extends Cubit<UserState> {
   UserCubit(User user) : super(UserState(user: user));
+
+  void updateBalance(double balance) {
+    emit(UserState(user: state.user.copyWith(balance: balance)));
+  }
 }
