@@ -15,9 +15,24 @@ class MockBeneficiaryServiceImpl implements BeneficiaryService {
     return Future.value([
       Beneficiary(
         id: 'test',
-        name: 'Test',
-        phoneNumber: '234234',
-      )
+        name: 'Amit Pahandit',
+        phoneNumber: '+975255219205',
+      ),
+      Beneficiary(
+        id: 'test',
+        name: 'Kumar Suresh',
+        phoneNumber: '+975445454545',
+      ),
+      Beneficiary(
+        id: 'test',
+        name: 'Amit Pahandit',
+        phoneNumber: '+887897465413',
+      ),
+      Beneficiary(
+        id: 'test',
+        name: 'Snoop Dog',
+        phoneNumber: '545454545454',
+      ),
     ]);
   }
 }

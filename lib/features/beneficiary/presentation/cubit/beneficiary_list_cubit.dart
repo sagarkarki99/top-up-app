@@ -11,7 +11,7 @@ class BeneficiaryListCubit extends Cubit<BeneficiaryListState> {
   BeneficiaryListCubit({
     required this.beneficiaryService,
     required this.user,
-  }) : super(const BeneficiaryListState.initial());
+  }) : super(const BeneficiaryListState.fetching());
 
   final BeneficiaryService beneficiaryService;
   final User user;
