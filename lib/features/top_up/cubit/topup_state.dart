@@ -4,6 +4,8 @@ part of 'topup_cubit.dart';
 class TopupState with _$TopupState {
   const factory TopupState({
     required TextEditingController amountController,
+    @Default([]) List<double> topupOptions,
+    double? selected,
     TopupInfo? beneficiaryTopupInfo,
     @Default(TopupInfoStatus.settingUp()) TopupInfoStatus topupInfoStatus,
     @Default(TopupStatus.idle()) TopupStatus topupStatus,
@@ -22,5 +24,6 @@ class TopupStatus with _$TopupStatus {
   const factory TopupStatus.idle() = _Idle;
   const factory TopupStatus.toppingUp() = _ToppingUp;
   const factory TopupStatus.topupFailed(String errorMessage) = _TopupFailed;
-  const factory TopupStatus.topupSuccess(String errorMessage) = _TopupSuccess;
+  const factory TopupStatus.topupSuccess(TopupSuccessEntity entity) =
+      _TopupSuccess;
 }
