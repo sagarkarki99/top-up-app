@@ -19,53 +19,72 @@ class TopupView extends StatelessWidget {
         beneficiaryId: beneficiaryId,
         user: context.read<UserCubit>().state.user,
         topupService: locator.get<TopupService>(),
-      ),
-      child: const TopupBody(),
+      )..setupTopupEnvironment(),
+      child: const _TopupBody(),
     );
   }
 }
 
-class TopupBody extends StatelessWidget {
-  const TopupBody({super.key});
+class _TopupBody extends StatelessWidget {
+  const _TopupBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: BlocBuilder<TopupCubit, TopupState>(
+        builder: (context, state) {
+          return state.topupInfoStatus.when(
+            settingUp: () => const Center(child: CircularProgressIndicator()),
+            setupFailed: (errorMessage) => Center(
+              child: Text(errorMessage),
+            ),
+            loaded: () => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _HeaderSection(),
+                const SizedBox(height: 16),
+                const Text('Top up to: Vikky'),
+                const AmountField(),
+                const SizedBox(height: 16),
+                const DefaultAmountChips(),
+                const Spacer(),
+                ElevatedButton(
+                  onPressed: () {},
+                  child: const Text('Top up'),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _HeaderSection extends StatelessWidget {
+  const _HeaderSection();
 
   @override
   Widget build(BuildContext context) {
     final User user = context.watch<UserCubit>().state.user;
-    return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.only(left: 16, bottom: 16),
-            color: Colors.grey[200],
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.3,
+    return Container(
+      padding: const EdgeInsets.only(left: 16, bottom: 16),
+      color: Colors.grey[200],
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.3,
+      ),
+      child: Align(
+        alignment: Alignment.bottomLeft,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(user.name.toString()),
+            Text(
+              user.balance.toString(),
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(user.name.toString()),
-                  Text(
-                    user.balance.toString(),
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text('Top up to: Vikky'),
-          const AmountField(),
-          const SizedBox(height: 16),
-          const DefaultAmountChips(),
-          const Spacer(),
-          ElevatedButton(
-            onPressed: () {},
-            child: const Text('Top up'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
