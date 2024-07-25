@@ -4,6 +4,7 @@ import 'package:top_up_app/core/service_locator.dart';
 import 'package:top_up_app/features/beneficiary/presentation/cubit/beneficiary_list_cubit.dart';
 import 'package:top_up_app/features/beneficiary/presentation/widgets/beneficiary_item.dart';
 import 'package:top_up_app/features/beneficiary/service/beneficiary_service.dart';
+import 'package:top_up_app/features/top_up/topup_view.dart';
 import 'package:top_up_app/features/users/cubit/user_cubit.dart';
 
 class BeneficiaryView extends StatelessWidget {
@@ -32,7 +33,14 @@ class BeneficiaryView extends StatelessWidget {
                   itemCount: list.length,
                   itemBuilder: (context, index) => BeneficiaryItem(
                     beneficiary: list[index],
-                    onRechargePressed: () {},
+                    onRechargePressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              TopupView(beneficiaryId: list[index].id),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),

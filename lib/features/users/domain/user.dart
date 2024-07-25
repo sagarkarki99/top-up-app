@@ -6,6 +6,7 @@ part 'user.freezed.dart';
 class User with _$User {
   factory User({
     required String id,
+    required String name,
     @Default(0) double balance,
     @Default(false) bool isVerified,
   }) = _User;

@@ -17,7 +17,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => UserCubit(User(id: '1')),
+      create: (context) => UserCubit(
+        User(
+          id: '1',
+          name: 'Sagar',
+          balance: 1200.25,
+        ),
+      ),
       child: MaterialApp(
         title: 'Top-up App',
         theme: ThemeData(
