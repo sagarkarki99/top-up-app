@@ -31,7 +31,16 @@ class _TopupBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<TopupCubit, TopupState>(
+      body: BlocConsumer<TopupCubit, TopupState>(
+        listener: (context, state) {
+          if (state.topupStatus is ToppingUp) {
+            context
+                .read<UserCubit>()
+                .subtractFromBalance(state.finalSendingAmount!);
+          } else if (state.topupStatus is TopupFailed) {
+            context.read<UserCubit>().addToBalance(state.finalSendingAmount!);
+          }
+        },
         builder: (context, state) {
           return state.topupInfoStatus.when(
             settingUp: () => const Center(child: CircularProgressIndicator()),
@@ -47,10 +56,11 @@ class _TopupBody extends StatelessWidget {
                 const AmountField(),
                 const SizedBox(height: 16),
                 const DefaultAmountChips(),
+                Text(state.validationMessage),
                 const Spacer(),
                 ElevatedButton(
-                  onPressed: () {},
                   child: const Text('Top up'),
+                  onPressed: () => context.read<TopupCubit>().confirmTopup(),
                 ),
               ],
             ),

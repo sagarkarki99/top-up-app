@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         User(
           id: '1',
           name: 'Sagar',
-          balance: 1200.25,
+          balance: 50.25,
         ),
       ),
       child: MaterialApp(

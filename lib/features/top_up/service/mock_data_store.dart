@@ -3,8 +3,12 @@ import 'package:top_up_app/features/beneficiary/service/beneficiary_service.dart
 import 'package:top_up_app/features/top_up/entity/topup_info.dart';
 import 'package:top_up_app/features/top_up/entity/topup_success_entity.dart';
 import 'package:top_up_app/features/top_up/service/topup_service.dart';
+import 'package:top_up_app/features/users/domain/user.dart';
 
 class MockDataStore implements TopupService, BeneficiaryService {
+  late User user;
+  MockDataStore();
+
   final List<Beneficiary> beneficiaries = [
     Beneficiary(
       id: '1',
@@ -28,9 +32,35 @@ class MockDataStore implements TopupService, BeneficiaryService {
     ),
   ];
 
+  final Map<String, BalanceInfo> beneficiaryIdToBalance = {
+    '1': BalanceInfo(
+      allowed: maxLimitForVerifiedUser,
+      available: maxLimitForVerifiedUser,
+    ),
+    '2': BalanceInfo(
+      allowed: maxLimitForVerifiedUser,
+      available: maxLimitForVerifiedUser,
+    ),
+    '3': BalanceInfo(
+      allowed: maxLimitForVerifiedUser,
+      available: maxLimitForVerifiedUser,
+    ),
+    '4': BalanceInfo(
+      allowed: maxLimitForVerifiedUser,
+      available: maxLimitForVerifiedUser,
+    ),
+  };
+
+  BalanceInfo usersLimit = BalanceInfo(allowed: 3000, available: 3000);
+
   static const double maxLimitForVerifiedUser = 1000;
   static const double maxLimitForUnVerifiedUser = 500;
   static const double totalAllowedAmount = 3000;
+  static const double feePerTransaction = 1;
+
+  setUser(User user) {
+    this.user = user;
+  }
 
   @override
   Future<Beneficiary> addNewBeneficiary(
@@ -45,14 +75,17 @@ class MockDataStore implements TopupService, BeneficiaryService {
 
   @override
   Future<TopupInfo> fetchTopupInfo(String userId, String beneficiaryId) {
+    final beneficiary = beneficiaries.firstWhere(
+      (element) => element.id == beneficiaryId,
+    );
     return Future.delayed(const Duration(seconds: 1), () {
       return TopupInfo(
         id: '43',
-        beneficiaryName: 'Radhe Radhe',
-        beneficiaryPhoneNumber: '234234234',
+        beneficiaryName: beneficiary.name,
+        beneficiaryPhoneNumber: beneficiary.phoneNumber,
         fee: 1,
-        totalToppedupAmount: BalanceInfo(allowed: 1000, available: 1000),
-        beneficiaryToppedupAmount: BalanceInfo(allowed: 1000, available: 1000),
+        totalToppedupAmount: usersLimit,
+        beneficiaryToppedupAmount: beneficiaryIdToBalance[beneficiaryId]!,
       );
     });
   }
@@ -60,6 +93,14 @@ class MockDataStore implements TopupService, BeneficiaryService {
   @override
   Future<TopupSuccessEntity> topup(
       String userId, String beneficiaryId, double amount) {
+    final beneficiaryBalance = beneficiaryIdToBalance[beneficiaryId]!;
+    beneficiaryIdToBalance[beneficiaryId] = beneficiaryBalance.copyWith(
+      available: beneficiaryBalance.available - amount,
+    );
+    usersLimit = usersLimit.copyWith(available: usersLimit.available - amount);
+    print(beneficiaryBalance);
+    print('-----------------');
+    print(usersLimit);
     return Future.value(
         TopupSuccessEntity(message: 'Success', transactionId: '123'));
   }

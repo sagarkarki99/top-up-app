@@ -11,4 +11,22 @@ class UserCubit extends Cubit<UserState> {
   void updateBalance(double balance) {
     emit(UserState(user: state.user.copyWith(balance: balance)));
   }
+
+  void addToBalance(double amount) {
+    emit(
+      UserState(
+          user: state.user.copyWith(
+        balance: state.user.balance + amount,
+      )),
+    );
+  }
+
+  void subtractFromBalance(double amount) {
+    emit(
+      UserState(
+          user: state.user.copyWith(
+        balance: state.user.balance - amount,
+      )),
+    );
+  }
 }

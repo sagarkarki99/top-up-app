@@ -3,13 +3,16 @@ part of 'topup_cubit.dart';
 @freezed
 class TopupState with _$TopupState {
   const factory TopupState({
-    required TextEditingController amountController,
+    @Default('') String validationMessage,
     @Default([]) List<double> topupOptions,
     double? selected,
+    double? finalSendingAmount,
     TopupInfo? beneficiaryTopupInfo,
     @Default(TopupInfoStatus.settingUp()) TopupInfoStatus topupInfoStatus,
     @Default(TopupStatus.idle()) TopupStatus topupStatus,
   }) = _TopupState;
+
+  const TopupState._();
 }
 
 @freezed
@@ -21,9 +24,10 @@ class TopupInfoStatus with _$TopupInfoStatus {
 
 @freezed
 class TopupStatus with _$TopupStatus {
-  const factory TopupStatus.idle() = _Idle;
-  const factory TopupStatus.toppingUp() = _ToppingUp;
-  const factory TopupStatus.topupFailed(String errorMessage) = _TopupFailed;
+  const factory TopupStatus.idle() = Idle;
+  const factory TopupStatus.readyToTopup() = ReadyToTopup;
+  const factory TopupStatus.toppingUp() = ToppingUp;
+  const factory TopupStatus.topupFailed(String errorMessage) = TopupFailed;
   const factory TopupStatus.topupSuccess(TopupSuccessEntity entity) =
-      _TopupSuccess;
+      TopupSuccess;
 }
