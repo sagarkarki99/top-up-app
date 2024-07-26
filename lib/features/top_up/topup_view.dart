@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:top_up_app/core/service_locator.dart';
 import 'package:top_up_app/features/top_up/cubit/topup_cubit.dart';
 import 'package:top_up_app/features/top_up/service/topup_service.dart';
 import 'package:top_up_app/features/top_up/widgets/widgets.dart';
 import 'package:top_up_app/features/users/cubit/user_cubit.dart';
-import 'package:top_up_app/features/users/domain/user.dart';
 
 class TopupView extends StatelessWidget {
   const TopupView({super.key, required this.beneficiaryId});
@@ -30,71 +30,120 @@ class _TopupBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocConsumer<TopupCubit, TopupState>(
-        listener: (context, state) {
-          if (state.topupStatus is ToppingUp) {
-            context
-                .read<UserCubit>()
-                .subtractFromBalance(state.finalSendingAmount!);
-          } else if (state.topupStatus is TopupFailed) {
-            context.read<UserCubit>().addToBalance(state.finalSendingAmount!);
-          }
-        },
-        builder: (context, state) {
-          return state.topupInfoStatus.when(
+    return BlocConsumer<TopupCubit, TopupState>(
+      listener: (context, state) {
+        if (state.topupStatus is ToppingUp) {
+          context
+              .read<UserCubit>()
+              .subtractFromBalance(state.finalSendingAmount!);
+        } else if (state.topupStatus is TopupFailed) {
+          context.read<UserCubit>().addToBalance(state.finalSendingAmount!);
+        }
+      },
+      builder: (context, state) {
+        return SizedBox(
+          height: MediaQuery.of(context).size.height * 0.4,
+          child: state.topupInfoStatus.when(
             settingUp: () => const Center(child: CircularProgressIndicator()),
             setupFailed: (errorMessage) => Center(
               child: Text(errorMessage),
             ),
-            loaded: () => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _HeaderSection(),
-                const SizedBox(height: 16),
-                const Text('Top up to: Vikky'),
-                const AmountField(),
-                const SizedBox(height: 16),
-                const DefaultAmountChips(),
-                Text(state.validationMessage),
-                const Spacer(),
-                ElevatedButton(
-                  child: const Text('Top up'),
-                  onPressed: () => context.read<TopupCubit>().confirmTopup(),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+            loaded: () => const _TopupForm(),
+          ),
+        );
+      },
     );
   }
 }
 
-class _HeaderSection extends StatelessWidget {
-  const _HeaderSection();
+class _TopupForm extends StatelessWidget {
+  const _TopupForm({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final User user = context.watch<UserCubit>().state.user;
-    return Container(
-      padding: const EdgeInsets.only(left: 16, bottom: 16),
-      color: Colors.grey[200],
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.3,
-      ),
-      child: Align(
-        alignment: Alignment.bottomLeft,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(user.name.toString()),
-            Text(
-              user.balance.toString(),
-              style: Theme.of(context).textTheme.headlineMedium,
+    return BlocBuilder<TopupCubit, TopupState>(
+      builder: (context, state) {
+        return state.topupStatus.maybeWhen(
+          topupSuccess: (_) => const TopupSuccessView(),
+          orElse: () => Padding(
+            padding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Top up: ${state.beneficiaryTopupInfo!.beneficiaryName}',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 16),
+                const DefaultAmountChips(),
+                const SizedBox(height: 16),
+                Text(
+                  state.validationMessage,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium!
+                      .copyWith(color: Colors.red),
+                ),
+                const Spacer(),
+                Text(
+                  'AED ${state.beneficiaryTopupInfo!.fee.toInt()} will be charged for each transaction.',
+                  style: const TextStyle(
+                      fontSize: 12, fontStyle: FontStyle.italic),
+                ),
+                state.finalSendingAmount != null
+                    ? Text('Total: AED ${state.finalSendingAmount}')
+                    : const SizedBox.shrink(),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: state.topupStatus is ReadyToTopup
+                        ? () => context.read<TopupCubit>().confirmTopup()
+                        : null,
+                    child: state.topupStatus is ToppingUp
+                        ? LoadingAnimationWidget.horizontalRotatingDots(
+                            color: Colors.blueAccent,
+                            size: 48,
+                          )
+                        : const Text('Top up'),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class TopupSuccessView extends StatelessWidget {
+  const TopupSuccessView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.airplane_ticket_sharp, size: 108),
+          const SizedBox(height: 16),
+          Text(
+            'Topup successful!',
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(8),
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Okay'),
+            ),
+          )
+        ],
       ),
     );
   }

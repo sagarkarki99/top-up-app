@@ -7,7 +7,18 @@ import 'package:top_up_app/features/users/domain/user.dart';
 
 class MockDataStore implements TopupService, BeneficiaryService {
   late User user;
-  MockDataStore();
+  MockDataStore() {
+    user = User(
+      id: '1',
+      name: 'Sagar',
+      balance: 100,
+    );
+  }
+
+  static const double maxLimitForVerifiedUser = 70;
+  static const double maxLimitForUnVerifiedUser = 50;
+  static const double totalAllowedAmount = 100;
+  static const double feePerTransaction = 1;
 
   final List<Beneficiary> beneficiaries = [
     Beneficiary(
@@ -51,12 +62,10 @@ class MockDataStore implements TopupService, BeneficiaryService {
     ),
   };
 
-  BalanceInfo usersLimit = BalanceInfo(allowed: 3000, available: 3000);
-
-  static const double maxLimitForVerifiedUser = 1000;
-  static const double maxLimitForUnVerifiedUser = 500;
-  static const double totalAllowedAmount = 3000;
-  static const double feePerTransaction = 1;
+  BalanceInfo usersLimit = BalanceInfo(
+    allowed: totalAllowedAmount,
+    available: totalAllowedAmount,
+  );
 
   setUser(User user) {
     this.user = user;
@@ -92,16 +101,25 @@ class MockDataStore implements TopupService, BeneficiaryService {
 
   @override
   Future<TopupSuccessEntity> topup(
-      String userId, String beneficiaryId, double amount) {
+    String userId,
+    String beneficiaryId,
+    double amount,
+  ) {
     final beneficiaryBalance = beneficiaryIdToBalance[beneficiaryId]!;
     beneficiaryIdToBalance[beneficiaryId] = beneficiaryBalance.copyWith(
       available: beneficiaryBalance.available - amount,
     );
     usersLimit = usersLimit.copyWith(available: usersLimit.available - amount);
+    user = user.copyWith(balance: user.balance - amount);
     print(beneficiaryBalance);
     print('-----------------');
     print(usersLimit);
-    return Future.value(
-        TopupSuccessEntity(message: 'Success', transactionId: '123'));
+    return Future.delayed(
+      const Duration(seconds: 1),
+      () => TopupSuccessEntity(
+        message: 'Success',
+        transactionId: '123',
+      ),
+    );
   }
 }

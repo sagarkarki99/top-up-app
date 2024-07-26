@@ -48,7 +48,18 @@ class TopupCubit extends Cubit<TopupState> {
           validationMessage: 'You do not have enough balance to top up.',
         ),
       );
-    } else if (state.beneficiaryTopupInfo!.totalToppedupAmount.available == 0) {
+    } else if (state
+            .beneficiaryTopupInfo!.beneficiaryToppedupAmount.available <=
+        0) {
+      emit(
+        state.copyWith(
+          selected: amount,
+          topupStatus: const TopupStatus.idle(),
+          validationMessage:
+              'Your limit to top up ${state.beneficiaryTopupInfo!.beneficiaryName} has been reached. Please verify you account to extend your limit.',
+        ),
+      );
+    } else if (state.beneficiaryTopupInfo!.totalToppedupAmount.available <= 0) {
       emit(
         state.copyWith(
           selected: amount,
@@ -63,6 +74,7 @@ class TopupCubit extends Cubit<TopupState> {
           selected: amount,
           topupStatus: const TopupStatus.readyToTopup(),
           validationMessage: '',
+          finalSendingAmount: amount + state.beneficiaryTopupInfo!.fee,
         ),
       );
     }
