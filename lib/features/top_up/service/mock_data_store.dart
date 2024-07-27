@@ -13,6 +13,34 @@ class MockDataStore implements TopupService, BeneficiaryService {
       name: 'Sagar',
       balance: 100,
     );
+    beneficiaryIdToBalance = {
+      '1': _getDefaultInfoForVerified(),
+      '2': _getDefaultInfoForVerified(),
+      '3': _getDefaultInfoForVerified(),
+      '4': _getDefaultInfoForVerified(),
+    };
+    beneficiaries = [
+      Beneficiary(
+        id: '1',
+        name: 'Amit Pahandit',
+        phoneNumber: '+975255219205',
+      ),
+      Beneficiary(
+        id: '2',
+        name: 'Kumar Suresh',
+        phoneNumber: '+975445454545',
+      ),
+      Beneficiary(
+        id: '3',
+        name: 'Amit Pahandit',
+        phoneNumber: '+887897465413',
+      ),
+      Beneficiary(
+        id: '4',
+        name: 'Snoop Dog',
+        phoneNumber: '545454545454',
+      ),
+    ];
   }
 
   static const double maxLimitForVerifiedUser = 70;
@@ -20,47 +48,17 @@ class MockDataStore implements TopupService, BeneficiaryService {
   static const double totalAllowedAmount = 100;
   static const double feePerTransaction = 1;
 
-  final List<Beneficiary> beneficiaries = [
-    Beneficiary(
-      id: '1',
-      name: 'Amit Pahandit',
-      phoneNumber: '+975255219205',
-    ),
-    Beneficiary(
-      id: '2',
-      name: 'Kumar Suresh',
-      phoneNumber: '+975445454545',
-    ),
-    Beneficiary(
-      id: '3',
-      name: 'Amit Pahandit',
-      phoneNumber: '+887897465413',
-    ),
-    Beneficiary(
-      id: '4',
-      name: 'Snoop Dog',
-      phoneNumber: '545454545454',
-    ),
-  ];
+  late final List<Beneficiary> beneficiaries;
 
-  final Map<String, BalanceInfo> beneficiaryIdToBalance = {
-    '1': BalanceInfo(
+  late final Map<String, BalanceInfo> beneficiaryIdToBalance;
+  DateTime? _lastTopupDate;
+
+  BalanceInfo _getDefaultInfoForVerified() {
+    return BalanceInfo(
       allowed: maxLimitForVerifiedUser,
       available: maxLimitForVerifiedUser,
-    ),
-    '2': BalanceInfo(
-      allowed: maxLimitForVerifiedUser,
-      available: maxLimitForVerifiedUser,
-    ),
-    '3': BalanceInfo(
-      allowed: maxLimitForVerifiedUser,
-      available: maxLimitForVerifiedUser,
-    ),
-    '4': BalanceInfo(
-      allowed: maxLimitForVerifiedUser,
-      available: maxLimitForVerifiedUser,
-    ),
-  };
+    );
+  }
 
   BalanceInfo usersLimit = BalanceInfo(
     allowed: totalAllowedAmount,
@@ -88,15 +86,27 @@ class MockDataStore implements TopupService, BeneficiaryService {
       (element) => element.id == beneficiaryId,
     );
     return Future.delayed(const Duration(seconds: 1), () {
-      return TopupInfo(
+      final info = TopupInfo(
         id: '43',
         beneficiaryName: beneficiary.name,
         beneficiaryPhoneNumber: beneficiary.phoneNumber,
         fee: 1,
-        totalToppedupAmount: usersLimit,
+        totalToppedupAmount: _getUserLimitForCurrentMonth,
         beneficiaryToppedupAmount: beneficiaryIdToBalance[beneficiaryId]!,
       );
+      return info;
     });
+  }
+
+  BalanceInfo get _getUserLimitForCurrentMonth {
+    if (_lastTopupDate?.month == DateTime.now().month) {
+      return usersLimit;
+    }
+    usersLimit = BalanceInfo(
+      allowed: totalAllowedAmount,
+      available: totalAllowedAmount,
+    );
+    return usersLimit;
   }
 
   @override
@@ -111,6 +121,7 @@ class MockDataStore implements TopupService, BeneficiaryService {
     );
     usersLimit = usersLimit.copyWith(available: usersLimit.available - amount);
     user = user.copyWith(balance: user.balance - amount);
+    _lastTopupDate = DateTime.now();
     print(beneficiaryBalance);
     print('-----------------');
     print(usersLimit);

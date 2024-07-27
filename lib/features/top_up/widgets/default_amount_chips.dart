@@ -15,7 +15,7 @@ class DefaultAmountChips extends StatelessWidget {
           .state
           .topupOptions
           .map((amount) => _ChipItem(
-              label: 'AED $amount',
+              label: 'AED ${amount.toInt()}',
               isSelected: context.watch<TopupCubit>().state.selected == amount,
               onTap: () => context.read<TopupCubit>().updateSelection(amount)))
           .toList(),

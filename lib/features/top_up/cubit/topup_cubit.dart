@@ -40,33 +40,31 @@ class TopupCubit extends Cubit<TopupState> {
 
   void updateSelection(double amount) {
     // logic for balance checking (along with fee)
-    if (user.balance < amount + state.beneficiaryTopupInfo!.fee) {
-      emit(
-        state.copyWith(
-          selected: amount,
-          topupStatus: const TopupStatus.idle(),
-          validationMessage: 'You do not have enough balance to top up.',
-        ),
+    if (_isBalanceAvailable(amount)) {
+      _emitValidationState(amount, 'You do not have enough balance to top up.');
+    } else if (_isBeneficiaryLimitReached()) {
+      _emitValidationState(
+        amount,
+        user.isVerified
+            ? 'Your limit to top up ${state.beneficiaryTopupInfo!.beneficiaryName} has been reached.'
+            : 'Your limit to top up ${state.beneficiaryTopupInfo!.beneficiaryName} has been reached. Please verify you account to extend your limit.',
       );
-    } else if (state
-            .beneficiaryTopupInfo!.beneficiaryToppedupAmount.available <=
-        0) {
-      emit(
-        state.copyWith(
-          selected: amount,
-          topupStatus: const TopupStatus.idle(),
-          validationMessage:
-              'Your limit to top up ${state.beneficiaryTopupInfo!.beneficiaryName} has been reached. Please verify you account to extend your limit.',
-        ),
+    } else if (_isBeneficiaryLimitCrossed(amount)) {
+      _emitValidationState(
+        amount,
+        user.isVerified
+            ? 'Your limit to top up ${state.beneficiaryTopupInfo!.beneficiaryName} has been reached.'
+            : 'Your limit to top up ${state.beneficiaryTopupInfo!.beneficiaryName} has been reached. Please verify you account to extend your limit.',
       );
-    } else if (state.beneficiaryTopupInfo!.totalToppedupAmount.available <= 0) {
-      emit(
-        state.copyWith(
-          selected: amount,
-          topupStatus: const TopupStatus.idle(),
-          validationMessage:
-              'You have reached maximum amount of ${state.beneficiaryTopupInfo!.totalToppedupAmount.allowed} for this month.',
-        ),
+    } else if (_isTotalLimitReached()) {
+      _emitValidationState(
+        amount,
+        'You have reached maximum amount of ${state.beneficiaryTopupInfo!.totalToppedupAmount.allowed} for this month.',
+      );
+    } else if (_isTotalLimitCrossed(amount)) {
+      _emitValidationState(
+        amount,
+        'Your available balance to top up for this month is AED ${state.beneficiaryTopupInfo!.totalToppedupAmount.available}.',
       );
     } else {
       emit(
@@ -78,6 +76,36 @@ class TopupCubit extends Cubit<TopupState> {
         ),
       );
     }
+  }
+
+  bool _isTotalLimitCrossed(double amount) {
+    return state.beneficiaryTopupInfo!.totalToppedupAmount.available < amount;
+  }
+
+  bool _isTotalLimitReached() =>
+      state.beneficiaryTopupInfo!.totalToppedupAmount.available == 0;
+
+  bool _isBeneficiaryLimitReached() {
+    return state.beneficiaryTopupInfo!.beneficiaryToppedupAmount.available == 0;
+  }
+
+  bool _isBeneficiaryLimitCrossed(double amount) {
+    return state.beneficiaryTopupInfo!.beneficiaryToppedupAmount.available <
+        amount;
+  }
+
+  bool _isBalanceAvailable(double amount) =>
+      user.balance < amount + state.beneficiaryTopupInfo!.fee;
+
+  void _emitValidationState(double amount, String validationMmessage) {
+    return emit(
+      state.copyWith(
+        selected: amount,
+        topupStatus: const TopupStatus.idle(),
+        finalSendingAmount: amount + state.beneficiaryTopupInfo!.fee,
+        validationMessage: validationMmessage,
+      ),
+    );
   }
 
   Future<void> confirmTopup() async {
@@ -92,7 +120,7 @@ class TopupCubit extends Cubit<TopupState> {
     final response = await topupService.topup(
       user.id,
       beneficiaryId,
-      state.selected!,
+      state.selected ?? 0,
     );
     emit(state.copyWith(topupStatus: TopupStatus.topupSuccess(response)));
   }
