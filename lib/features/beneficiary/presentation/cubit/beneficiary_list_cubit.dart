@@ -1,4 +1,3 @@
-import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:top_up_app/features/beneficiary/domain/beneficiary.dart';
@@ -12,10 +11,13 @@ class BeneficiaryListCubit extends Cubit<BeneficiaryListState> {
   BeneficiaryListCubit({
     required this.beneficiaryService,
     required this.user,
-  }) : super(const BeneficiaryListState());
+  }) : super(const BeneficiaryListState(
+          maxAllowedBeneficiaries: _maxNumberOfBeneficiaries,
+        ));
 
   final BeneficiaryService beneficiaryService;
   final User user;
+  static const _maxNumberOfBeneficiaries = 5;
 
   void fetchBeneficiaries() async {
     emit(state.copyWith(status: const BeneficiaryListStatus.fetching()));
@@ -35,7 +37,22 @@ class BeneficiaryListCubit extends Cubit<BeneficiaryListState> {
   }
 
   void addBeneficiary(Beneficiary beneficiary) async {
-    final updatedBeneficiary =
-        await beneficiaryService.addNewBeneficiary(user.id, beneficiary);
+    if (state.beneficiaries.contains(beneficiary)) {
+      return emit(
+        state.copyWith(
+          status:
+              const BeneficiaryListStatus.error('Beneficiary already exists.'),
+        ),
+      );
+    }
+    final updatedBeneficiary = await beneficiaryService.addNewBeneficiary(
+      user.id,
+      beneficiary,
+    );
+    emit(state.copyWith(
+      beneficiaries: List.of(state.beneficiaries)
+        ..insert(0, updatedBeneficiary),
+      status: const BeneficiaryListStatus.loaded(),
+    ));
   }
 }

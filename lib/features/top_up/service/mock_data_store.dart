@@ -71,8 +71,10 @@ class MockDataStore implements TopupService, BeneficiaryService {
 
   @override
   Future<Beneficiary> addNewBeneficiary(
-      String userId, Beneficiary newBeneficiary) async {
-    return Future.value(beneficiaries.first);
+    String userId,
+    Beneficiary newBeneficiary,
+  ) async {
+    return Future.value(newBeneficiary);
   }
 
   @override

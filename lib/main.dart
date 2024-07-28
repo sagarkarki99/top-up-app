@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:top_up_app/features/beneficiary/presentation/beneficiary_view.dart';
 import 'package:top_up_app/core/service_locator.dart';
+import 'package:top_up_app/features/home_view.dart';
 import 'package:top_up_app/features/top_up/service/mock_data_store.dart';
 import 'package:top_up_app/features/users/cubit/user_cubit.dart';
 
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),
-        home: const BeneficiaryView(),
+        home: const HomeView(),
       ),
     );
   }

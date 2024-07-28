@@ -4,6 +4,7 @@ part of 'beneficiary_list_cubit.dart';
 class BeneficiaryListState with _$BeneficiaryListState {
   const factory BeneficiaryListState({
     @Default([]) List<Beneficiary> beneficiaries,
+    required int maxAllowedBeneficiaries,
     @Default(BeneficiaryListStatus.fetching()) BeneficiaryListStatus status,
   }) = _BeneficiaryListState;
 }
