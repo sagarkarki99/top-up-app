@@ -20,37 +20,50 @@ class BeneficiaryView extends StatelessWidget {
       )..fetchBeneficiaries(),
       child: Scaffold(
         body: BlocBuilder<BeneficiaryListCubit, BeneficiaryListState>(
-          builder: (context, state) => state.when(
+          builder: (context, state) => state.status.when(
             error: (errorMessage) => Center(child: Text(errorMessage)),
-            empty: (_) => const CircularProgressIndicator(),
+            empty: (_) => const _EmptyView(),
             fetching: () => const CircularProgressIndicator(),
-            loaded: (list) => Column(
-              children: [
-                const _HeaderSection(),
-                Container(
-                  color: Colors.grey[200],
-                  height: 180,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: list.length,
-                    itemBuilder: (context, index) => BeneficiaryItem(
-                      beneficiary: list[index],
-                      onRechargePressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (context) =>
-                              TopupView(beneficiaryId: list[index].id),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            loaded: () => const _BeneficiaryListView(),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _BeneficiaryListView extends StatelessWidget {
+  const _BeneficiaryListView({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final beneficiaries =
+        context.watch<BeneficiaryListCubit>().state.beneficiaries;
+    return Column(
+      children: [
+        const _HeaderSection(),
+        Container(
+          color: Colors.grey[200],
+          height: 180,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(8),
+            scrollDirection: Axis.horizontal,
+            itemCount: beneficiaries.length,
+            itemBuilder: (context, index) => BeneficiaryItem(
+              beneficiary: beneficiaries[index],
+              onRechargePressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) =>
+                      TopupView(beneficiaryId: beneficiaries[index].id),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -80,6 +93,17 @@ class _HeaderSection extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _EmptyView extends StatelessWidget {
+  const _EmptyView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('No beneficiaries found.'),
     );
   }
 }

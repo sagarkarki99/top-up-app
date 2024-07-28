@@ -2,8 +2,16 @@ part of 'beneficiary_list_cubit.dart';
 
 @freezed
 class BeneficiaryListState with _$BeneficiaryListState {
-  const factory BeneficiaryListState.fetching() = _Fetching;
-  const factory BeneficiaryListState.loaded(List<Beneficiary> list) = _Loaded;
-  const factory BeneficiaryListState.error(String errorMessage) = _Error;
-  const factory BeneficiaryListState.empty(String message) = _Empty;
+  const factory BeneficiaryListState({
+    @Default([]) List<Beneficiary> beneficiaries,
+    @Default(BeneficiaryListStatus.fetching()) BeneficiaryListStatus status,
+  }) = _BeneficiaryListState;
+}
+
+@freezed
+class BeneficiaryListStatus with _$BeneficiaryListStatus {
+  const factory BeneficiaryListStatus.fetching() = Fetching;
+  const factory BeneficiaryListStatus.loaded() = BeneficiariesLoaded;
+  const factory BeneficiaryListStatus.error(String errorMessage) = Error;
+  const factory BeneficiaryListStatus.empty(String message) = Empty;
 }
