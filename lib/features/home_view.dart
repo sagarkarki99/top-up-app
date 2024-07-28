@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:top_up_app/features/beneficiary/presentation/beneficiary_view.dart';
 import 'package:top_up_app/features/users/cubit/user_cubit.dart';
@@ -10,11 +9,22 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Column(
+        mainAxisSize: MainAxisSize.max,
         children: [
-          _HeaderSection(),
-          BeneficiaryView(),
+          const _HeaderSection(),
+          const BeneficiaryView(),
+          Expanded(
+            child: SizedBox(
+              width: double.infinity,
+              child: Center(
+                  child: Text(
+                'Other awesome View',
+                style: Theme.of(context).textTheme.headlineSmall,
+              )),
+            ),
+          )
         ],
       ),
     );
@@ -36,12 +46,14 @@ class _HeaderSection extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomLeft,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(user.name.toString()),
+            Text(user.name.toString(),
+                style: Theme.of(context).textTheme.headlineMedium),
             Text(
-              user.balance.toString(),
-              style: Theme.of(context).textTheme.headlineMedium,
+              'AED ${user.balance.toString()}',
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
         ),

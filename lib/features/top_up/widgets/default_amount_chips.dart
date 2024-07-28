@@ -36,14 +36,14 @@ class _ChipItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.grey[500] : Colors.white,
+          color: isSelected ? Colors.blueGrey : Colors.white,
           border: Border.all(
-            color: isSelected ? Colors.blueGrey : Colors.blueGrey,
+            color: isSelected ? Colors.blueAccent : Colors.blueGrey,
           ),
           borderRadius: BorderRadius.circular(
             16,
