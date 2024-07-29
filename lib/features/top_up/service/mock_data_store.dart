@@ -86,12 +86,14 @@ class MockDataStore implements TopupService, BeneficiaryService {
     Beneficiary newBeneficiary,
   ) async {
     final newValue = newBeneficiary.copyWith(
-      id: (Random().nextInt(100) + 50).toString(),
+      id: _getRandomId(),
     );
     beneficiaryIdToBalance[newValue.id] = _getLimitInfo();
     beneficiaries.insert(0, newValue);
     return Future.value(newValue);
   }
+
+  String _getRandomId() => (Random().nextInt(100) + 50).toString();
 
   @override
   Future<List<Beneficiary>> fetchBeneficiaries(String userId) {
@@ -104,15 +106,14 @@ class MockDataStore implements TopupService, BeneficiaryService {
       (element) => element.id == beneficiaryId,
     );
     return Future.delayed(const Duration(seconds: 1), () {
-      final info = TopupInfo(
-        id: '43',
+      return TopupInfo(
+        id: _getRandomId(),
         beneficiaryName: beneficiary.name,
         beneficiaryPhoneNumber: beneficiary.phoneNumber,
-        fee: 1,
+        fee: feePerTransaction,
         totalToppedupAmount: _getUserLimitForCurrentMonth,
         beneficiaryToppedupAmount: beneficiaryIdToBalance[beneficiaryId]!,
       );
-      return info;
     });
   }
 
@@ -140,14 +141,12 @@ class MockDataStore implements TopupService, BeneficiaryService {
     usersLimit = usersLimit.copyWith(available: usersLimit.available - amount);
     user = user.copyWith(balance: user.balance - amount);
     _lastTopupDate = DateTime.now();
-    print(beneficiaryBalance);
-    print('-----------------');
-    print(usersLimit);
+
     return Future.delayed(
       const Duration(seconds: 1),
       () => TopupSuccessEntity(
         message: 'Success',
-        transactionId: '123',
+        transactionId: _getRandomId(),
       ),
     );
   }
