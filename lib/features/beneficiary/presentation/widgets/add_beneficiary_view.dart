@@ -71,11 +71,13 @@ class AddBeneficiaryViewState extends State<AddBeneficiaryView> {
                 decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
                 onChanged: (_) => setState(() {}),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
                 validator: (value) {
-                  if (value == null ||
-                      !value.startsWith('+') ||
-                      value.length > 11) {
-                    return 'Invalid format. eg: +1111111111';
+                  if (value == null || value.length < 10) {
+                    return 'Phone number should be 10 digit.';
                   }
 
                   return null;
@@ -109,7 +111,7 @@ class AddBeneficiaryViewState extends State<AddBeneficiaryView> {
     context.read<BeneficiaryListCubit>().addBeneficiary(
           Beneficiary(
             name: _nameController.text.trim(),
-            phoneNumber: _phoneNumberController.text.trim(),
+            phoneNumber: '+97${_phoneNumberController.text.trim()}',
             id: '',
           ),
         );

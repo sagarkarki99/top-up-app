@@ -21,10 +21,10 @@ class MockDataStore implements TopupService, BeneficiaryService {
       isVerified: true,
     );
     beneficiaryIdToBalance = {
-      '1': _getDefaultInfoForVerified(),
-      '2': _getDefaultInfoForVerified(),
-      '3': _getDefaultInfoForVerified(),
-      '4': _getDefaultInfoForVerified(),
+      '1': _getLimitInfo(),
+      '2': _getLimitInfo(),
+      '3': _getLimitInfo(),
+      '4': _getLimitInfo(),
     };
     beneficiaries = [
       Beneficiary(
@@ -68,11 +68,16 @@ class MockDataStore implements TopupService, BeneficiaryService {
   /// This is used to reset the user total topup limit for the next month.
   DateTime? _lastTopupDate;
 
-  BalanceInfo _getDefaultInfoForVerified() {
-    return BalanceInfo(
-      allowed: maxLimitForVerifiedUser,
-      available: maxLimitForVerifiedUser,
-    );
+  BalanceInfo _getLimitInfo() {
+    return user.isVerified
+        ? BalanceInfo(
+            allowed: maxLimitForVerifiedUser,
+            available: maxLimitForVerifiedUser,
+          )
+        : BalanceInfo(
+            allowed: maxLimitForUnVerifiedUser,
+            available: maxLimitForUnVerifiedUser,
+          );
   }
 
   @override
@@ -80,14 +85,17 @@ class MockDataStore implements TopupService, BeneficiaryService {
     String userId,
     Beneficiary newBeneficiary,
   ) async {
-    return Future.value(newBeneficiary.copyWith(
-      id: Random().nextInt(100).toString(),
-    ));
+    final newValue = newBeneficiary.copyWith(
+      id: (Random().nextInt(100) + 50).toString(),
+    );
+    beneficiaryIdToBalance[newValue.id] = _getLimitInfo();
+    beneficiaries.insert(0, newValue);
+    return Future.value(newValue);
   }
 
   @override
   Future<List<Beneficiary>> fetchBeneficiaries(String userId) {
-    return Future.value(beneficiaries);
+    return Future.value(List.of(beneficiaries));
   }
 
   @override

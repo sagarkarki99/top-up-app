@@ -51,10 +51,11 @@ class BeneficiaryListCubit extends Cubit<BeneficiaryListState> {
       beneficiary,
     );
 
-    emit(state.copyWith(
+    var state2 = state.copyWith(
       beneficiaries: List.of(state.beneficiaries)
         ..insert(0, updatedBeneficiary),
       status: const BeneficiaryListStatus.loaded(),
-    ));
+    );
+    emit(state2);
   }
 }
