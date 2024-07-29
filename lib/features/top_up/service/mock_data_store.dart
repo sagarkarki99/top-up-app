@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:top_up_app/features/beneficiary/domain/beneficiary.dart';
 import 'package:top_up_app/features/beneficiary/service/beneficiary_service.dart';
 import 'package:top_up_app/features/top_up/entity/topup_info.dart';
@@ -8,10 +10,15 @@ import 'package:top_up_app/features/users/domain/user.dart';
 class MockDataStore implements TopupService, BeneficiaryService {
   late User user;
   MockDataStore() {
+    usersLimit = BalanceInfo(
+      allowed: totalAllowedAmount,
+      available: totalAllowedAmount,
+    );
     user = User(
       id: '1',
       name: 'Sagar',
       balance: 100,
+      isVerified: true,
     );
     beneficiaryIdToBalance = {
       '1': _getDefaultInfoForVerified(),
@@ -38,19 +45,27 @@ class MockDataStore implements TopupService, BeneficiaryService {
       Beneficiary(
         id: '4',
         name: 'Snoop Dog',
-        phoneNumber: '545454545454',
+        phoneNumber: '+975255219205',
       ),
     ];
   }
 
-  static const double maxLimitForVerifiedUser = 70;
-  static const double maxLimitForUnVerifiedUser = 50;
-  static const double totalAllowedAmount = 100;
+  static const double maxLimitForVerifiedUser = 1000;
+  static const double maxLimitForUnVerifiedUser = 500;
+  static const double totalAllowedAmount = 3000;
   static const double feePerTransaction = 1;
 
+  /// Stores the list of beneficiaries for the user.
   late final List<Beneficiary> beneficiaries;
 
+  /// Stores the balance information for each beneficiary.
   late final Map<String, BalanceInfo> beneficiaryIdToBalance;
+
+  /// Stores the user limit for the current month.
+  late BalanceInfo usersLimit;
+
+  /// Stores the last topupdate for any beneficiaries.
+  /// This is used to reset the user total topup limit for the next month.
   DateTime? _lastTopupDate;
 
   BalanceInfo _getDefaultInfoForVerified() {
@@ -60,21 +75,14 @@ class MockDataStore implements TopupService, BeneficiaryService {
     );
   }
 
-  BalanceInfo usersLimit = BalanceInfo(
-    allowed: totalAllowedAmount,
-    available: totalAllowedAmount,
-  );
-
-  setUser(User user) {
-    this.user = user;
-  }
-
   @override
   Future<Beneficiary> addNewBeneficiary(
     String userId,
     Beneficiary newBeneficiary,
   ) async {
-    return Future.value(newBeneficiary);
+    return Future.value(newBeneficiary.copyWith(
+      id: Random().nextInt(100).toString(),
+    ));
   }
 
   @override

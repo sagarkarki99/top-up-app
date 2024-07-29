@@ -10,22 +10,26 @@ part 'topup_cubit.freezed.dart';
 
 class TopupCubit extends Cubit<TopupState> {
   TopupCubit({
-    required this.user,
-    required this.topupService,
-    required this.beneficiaryId,
-  }) : super(const TopupState());
+    required User user,
+    required TopupService topupService,
+    required String beneficiaryId,
+  })  : _topupService = topupService,
+        _beneficiaryId = beneficiaryId,
+        _user = user,
+        super(const TopupState());
 
-  final User user;
-  final TopupService topupService;
-  final String beneficiaryId;
+  final User _user;
+  final TopupService _topupService;
+  final String _beneficiaryId;
+  static const List<double> _topupOptions = [5, 10, 20, 30, 50, 75, 100];
 
   Future<void> setupTopupEnvironment() async {
     try {
       emit(state.copyWith(topupInfoStatus: const TopupInfoStatus.settingUp()));
-      final info = await topupService.fetchTopupInfo(user.id, beneficiaryId);
+      final info = await _topupService.fetchTopupInfo(_user.id, _beneficiaryId);
       emit(state.copyWith(
+        topupOptions: _topupOptions,
         beneficiaryTopupInfo: info,
-        topupOptions: [5.0, 10.0, 20.0, 30, 50, 75, 100],
         topupInfoStatus: const TopupInfoStatus.loaded(),
       ));
     } on Exception {
@@ -39,20 +43,19 @@ class TopupCubit extends Cubit<TopupState> {
   }
 
   void updateSelection(double amount) {
-    // logic for balance checking (along with fee)
     if (_isBalanceAvailable(amount)) {
       _emitValidationState(amount, 'You do not have enough balance to top up.');
     } else if (_isBeneficiaryLimitReached()) {
       _emitValidationState(
         amount,
-        user.isVerified
+        _user.isVerified
             ? 'Your limit to top up ${state.beneficiaryTopupInfo!.beneficiaryName} has been reached.'
             : 'Your limit to top up ${state.beneficiaryTopupInfo!.beneficiaryName} has been reached. Please verify you account to extend your limit.',
       );
     } else if (_isBeneficiaryLimitCrossed(amount)) {
       _emitValidationState(
         amount,
-        user.isVerified
+        _user.isVerified
             ? 'Your limit to top up ${state.beneficiaryTopupInfo!.beneficiaryName} has been reached.'
             : 'Your limit to top up ${state.beneficiaryTopupInfo!.beneficiaryName} has been reached. Please verify you account to extend your limit.',
       );
@@ -95,7 +98,7 @@ class TopupCubit extends Cubit<TopupState> {
   }
 
   bool _isBalanceAvailable(double amount) =>
-      user.balance < amount + state.beneficiaryTopupInfo!.fee;
+      _user.balance < amount + state.beneficiaryTopupInfo!.fee;
 
   void _emitValidationState(double amount, String validationMmessage) {
     return emit(
@@ -117,9 +120,9 @@ class TopupCubit extends Cubit<TopupState> {
       topupStatus: const TopupStatus.toppingUp(),
       finalSendingAmount: state.selected! + state.beneficiaryTopupInfo!.fee,
     ));
-    final response = await topupService.topup(
-      user.id,
-      beneficiaryId,
+    final response = await _topupService.topup(
+      _user.id,
+      _beneficiaryId,
       state.selected ?? 0,
     );
     emit(state.copyWith(topupStatus: TopupStatus.topupSuccess(response)));

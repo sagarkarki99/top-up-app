@@ -45,10 +45,12 @@ class BeneficiaryListCubit extends Cubit<BeneficiaryListState> {
         ),
       );
     }
+
     final updatedBeneficiary = await beneficiaryService.addNewBeneficiary(
       user.id,
       beneficiary,
     );
+
     emit(state.copyWith(
       beneficiaries: List.of(state.beneficiaries)
         ..insert(0, updatedBeneficiary),
