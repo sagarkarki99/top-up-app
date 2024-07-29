@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:top_up_app/features/beneficiary/domain/beneficiary.dart';
 import 'package:top_up_app/features/beneficiary/presentation/cubit/beneficiary_list_cubit.dart';
@@ -71,8 +72,10 @@ class AddBeneficiaryViewState extends State<AddBeneficiaryView> {
                 keyboardType: TextInputType.phone,
                 onChanged: (_) => setState(() {}),
                 validator: (value) {
-                  if (!RegExp(r'^[0-9]{10}$').hasMatch(value ?? '')) {
-                    return 'Invalid phone number format';
+                  if (value == null ||
+                      !value.startsWith('+') ||
+                      value.length > 11) {
+                    return 'Invalid format. eg: +1111111111';
                   }
 
                   return null;
