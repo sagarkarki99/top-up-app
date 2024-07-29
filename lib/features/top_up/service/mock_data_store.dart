@@ -17,7 +17,7 @@ class MockDataStore implements TopupService, BeneficiaryService {
     user = User(
       id: '1',
       name: 'Sagar',
-      balance: 100,
+      balance: 5000,
       isVerified: true,
     );
     beneficiaryIdToBalance = {
@@ -50,8 +50,8 @@ class MockDataStore implements TopupService, BeneficiaryService {
     ];
   }
 
-  static const double maxLimitForVerifiedUser = 1000;
-  static const double maxLimitForUnVerifiedUser = 500;
+  static const double maxBeneficiaryLimitForVerifiedUser = 1000;
+  static const double maxBeneficiaryLimitForUnVerifiedUser = 500;
   static const double totalAllowedAmount = 3000;
   static const double feePerTransaction = 1;
 
@@ -71,12 +71,12 @@ class MockDataStore implements TopupService, BeneficiaryService {
   BalanceInfo _getLimitInfo() {
     return user.isVerified
         ? BalanceInfo(
-            allowed: maxLimitForVerifiedUser,
-            available: maxLimitForVerifiedUser,
+            allowed: maxBeneficiaryLimitForVerifiedUser,
+            available: maxBeneficiaryLimitForVerifiedUser,
           )
         : BalanceInfo(
-            allowed: maxLimitForUnVerifiedUser,
-            available: maxLimitForUnVerifiedUser,
+            allowed: maxBeneficiaryLimitForUnVerifiedUser,
+            available: maxBeneficiaryLimitForUnVerifiedUser,
           );
   }
 
@@ -112,13 +112,22 @@ class MockDataStore implements TopupService, BeneficiaryService {
         beneficiaryPhoneNumber: beneficiary.phoneNumber,
         fee: feePerTransaction,
         totalToppedupAmount: _getUserLimitForCurrentMonth,
-        beneficiaryToppedupAmount: beneficiaryIdToBalance[beneficiaryId]!,
+        beneficiaryToppedupAmount:
+            _getBeneficiaryLimitForCurrentMonth(beneficiaryId),
       );
     });
   }
 
+  BalanceInfo _getBeneficiaryLimitForCurrentMonth(String beneficiaryId) {
+    if (_isCurrentMonth) {
+      return beneficiaryIdToBalance[beneficiaryId]!;
+    }
+    beneficiaryIdToBalance[beneficiaryId] = _getLimitInfo();
+    return beneficiaryIdToBalance[beneficiaryId]!;
+  }
+
   BalanceInfo get _getUserLimitForCurrentMonth {
-    if (_lastTopupDate?.month == DateTime.now().month) {
+    if (_isCurrentMonth) {
       return usersLimit;
     }
     usersLimit = BalanceInfo(
@@ -127,6 +136,8 @@ class MockDataStore implements TopupService, BeneficiaryService {
     );
     return usersLimit;
   }
+
+  bool get _isCurrentMonth => _lastTopupDate?.month == DateTime.now().month;
 
   @override
   Future<TopupSuccessEntity> topup(
